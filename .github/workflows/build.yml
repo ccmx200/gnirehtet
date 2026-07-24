@@ -100,7 +100,8 @@ jobs:
 
       - name: Gather and package artifacts
         run: |
-          mkdir -p release
+          rm -rf release
+          mkdir release
           # Android APK (no extra zipping, apk is already a package)
           cp app/build/outputs/apk/release/gnirehtet-release-unsigned.apk release/gnirehtet.apk
           # Windows x86_64
