@@ -116,19 +116,23 @@ jobs:
             release/gnirehtet-linux-x86_64.zip
             release/gnirehtet-linux-aarch64.zip
           body: |
-            ## gnirehtet v2.7.4
+            ## gnirehtet v2.7.5
 
             ### Bug fixes
-            - **Fix "works at first, then no internet after a while"**: `GnirehtetService` was
-              closing the entire VPN session whenever the relay tunnel reported a transient
-              disconnection (`MSG_RELAY_TUNNEL_DISCONNECTED` → `closeAfterRelayDisconnected()`).
-              But `RelayTunnelProvider.invalidateTunnel()` fires that notification on every
-              reconnect attempt, so any brief relay hiccup tore down the VPN instead of letting
-              `PersistentRelayTunnel` reconnect. The handler now only updates the status /
-              notification and leaves the VPN running, so the built-in auto-reconnect can recover.
-            - **Fix demand mode reinstalling the APK on every reconnect**:
-              `REQUIRED_APK_VERSION_CODE` was still `9` while the APK is now `versionCode 15`,
-              so `must_install_client()` always returned true and `adb install -r` interrupted
-              the running client. Bumped the constant to `15`.
+            - **Fix "internet stops working after a while" (TCP window stall)**: The relay
+              discarded pure ACK packets whose sequence number did not exactly match the
+              expected value (`Ignoring packet … expecting …`). But pure ACKs carry no payload
+              and do not occupy sequence-number space, so their sequence number is frequently
+              "stale" (a duplicate ACK, or an ACK the client sent before the corresponding data
+              was forwarded to the network). Dropping them meant the relay's view of the client
+              receive window and the client's acknowledgement number were never refreshed; once
+              that window shrank to zero the relay stopped reading from the network socket and
+              the device lost internet access. Pure ACKs are now accepted even with a stale
+              sequence number and still update the window / ack state (and the SYN-ACK and
+              FIN-ACK state-machine transitions they carry).
+            - (v2.7.4) Keep the VPN alive on transient relay tunnel disconnect instead of
+              closing the whole session.
+            - (v2.7.4) Fix demand mode reinstalling the APK on every reconnect due to a stale
+              `REQUIRED_APK_VERSION_CODE`.
 
             **Full changelog**: https://github.com/ccmx200/gnirehtet/commits/main

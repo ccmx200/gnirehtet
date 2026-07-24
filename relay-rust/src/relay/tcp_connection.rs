@@ -488,6 +488,48 @@ impl TcpConnection {
         let expected_packet =
             (self.tcb.acknowledgement_number + Wrapping(self.client_to_network.size() as u32)).0;
         if tcp_header.sequence_number() != expected_packet {
+            // A pure ACK (no payload, no SYN, no FIN, no RST) does not occupy any sequence
+            // number space, so its sequence number may legitimately be "stale" — for example
+            // a duplicate ACK retransmitted by the client, or an ACK the client sent before
+            // the corresponding data had been forwarded to the network (so
+            // client_to_network.size() > 0 made `expected_packet` larger than the client's
+            // current send sequence number).
+            //
+            // If we dropped such pure ACKs the way we drop out-of-order data packets, the
+            // advertised window and the client's acknowledgement number would never be
+            // refreshed; once the relay's view of the client window shrank to zero it would
+            // stop reading from the network socket and the device would lose internet
+            // access ("works at first, then no internet after a while").
+            let payload_len = ipv4_packet.payload().map(|p| p.len()).unwrap_or(0);
+            let is_pure_ack = !tcp_header.is_syn()
+                && !tcp_header.is_fin()
+                && !tcp_header.is_rst()
+                && payload_len == 0;
+            if is_pure_ack {
+                cx_debug!(
+                    target: TAG,
+                    self.id,
+                    "Accepting stale pure ACK {} (acking {}); expecting {}; flags={}",
+                    tcp_header.sequence_number(),
+                    tcp_header.acknowledgement_number(),
+                    expected_packet,
+                    tcp_header.flags()
+                );
+                self.tcb.client_window = tcp_header.window();
+                self.tcb.their_acknowledgement_number = tcp_header.acknowledgement_number();
+                // The 3-way handshake completion is carried by a pure ACK too.
+                if self.tcb.state == TcpState::SynReceived {
+                    self.tcb.state = TcpState::Established;
+                    cx_debug!(target: TAG, self.id, "State = {:?}", self.tcb.state);
+                }
+                // If this ACK acknowledges our FIN, advance the close state machine.
+                if let Some(fin_sequence_number) = self.tcb.fin_sequence_number {
+                    if tcp_header.acknowledgement_number() == fin_sequence_number + 1 {
+                        self.handle_fin_ack(selector);
+                    }
+                }
+                return;
+            }
             // ignore packet already received or out-of-order, retransmission is already
             // managed by both sides
             cx_warn!(
