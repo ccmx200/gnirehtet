@@ -116,16 +116,20 @@ jobs:
             release/gnirehtet-linux-x86_64.zip
             release/gnirehtet-linux-aarch64.zip
           body: |
-            ## gnirehtet v2.7.1
+            ## gnirehtet v2.7.3
 
             ### Bug fixes
-            - **Fix app crash on "Connect now"**: `PendingIntent` was created without a mutability
-              flag, which is mandatory on Android 12+ (API 31+) and threw
-              `IllegalArgumentException`. Added `FLAG_IMMUTABLE`.
-            - **Fix `startForeground()` failure on Android 14**: declared the correct
-              `foregroundServiceType="connectedDevice"` (instead of `systemExempted`, which
-              requires `SYSTEM_ALERT_WINDOW`) and the matching
-              `FOREGROUND_SERVICE_CONNECTED_DEVICE` permission. On API 34+, the service type is
-              now passed explicitly to `startForeground()`.
+            - **Fix crash on "Connect now" and VPN not showing (Android 14)**: The root cause was
+              `Notifier.start()` calling `Service.startForeground()`. On Android 14 (API 34) this
+              requires a `foregroundServiceType` declared in the manifest plus the matching
+              permission (e.g. `FOREGROUND_SERVICE_CONNECTED_DEVICE`), which a regular VpnService
+              does not have. Since `VpnService.establish()` already promotes the service to
+              foreground priority automatically, `startForeground()` is no longer called at all;
+              the notification is now posted via `NotificationManager.notify()`. The call order in
+              `GnirehtetService.startVpn()` was also fixed so `establish()` runs before the
+              notification is shown.
+            - Removed the unused `FOREGROUND_SERVICE_CONNECTED_DEVICE` permission and the
+              `foregroundServiceType` attribute (already done in 2.7.2, reiterated here because
+              the installed package on the device was still the old build).
 
             **Full changelog**: https://github.com/ccmx200/gnirehtet/commits/main

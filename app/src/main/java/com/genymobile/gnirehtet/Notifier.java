@@ -8,7 +8,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ServiceInfo;
 import android.os.Build;
 
 /**
@@ -71,17 +70,19 @@ public class Notifier {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel();
         }
-        Notification notification = createNotification(false);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // API 34+ requires the foreground service type to be passed explicitly
-            context.startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
-        } else {
-            context.startForeground(NOTIFICATION_ID, notification);
-        }
+        // VpnService is automatically promoted to foreground priority when establish()
+        // is called, so we must NOT call startForeground() here. On Android 14 (API 34),
+        // calling startForeground() requires a foregroundServiceType declared in the
+        // manifest plus the matching permission, which a regular VpnService does not
+        // have (and should not declare). Showing the notification via NotificationManager
+        // is sufficient and keeps the service alive because of the VpnService exemption.
+        getNotificationManager().notify(NOTIFICATION_ID, createNotification(false));
     }
 
     public void stop() {
-        context.stopForeground(true);
+        // Cancel the notification instead of calling stopForeground(), since we never
+        // called startForeground() in start().
+        getNotificationManager().cancel(NOTIFICATION_ID);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             deleteNotificationChannel();
         }

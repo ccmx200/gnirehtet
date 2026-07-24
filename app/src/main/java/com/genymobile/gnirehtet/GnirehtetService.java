@@ -58,19 +58,14 @@ public class GnirehtetService extends VpnService {
         Intent intent = new Intent(context, GnirehtetService.class);
         intent.setAction(ACTION_START_VPN);
         intent.putExtra(GnirehtetService.EXTRA_VPN_CONFIGURATION, config);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent);
-        } else {
-            context.startService(intent);
-        }
+        // VpnService is exempt from background start restrictions; use startService
+        // instead of startForegroundService to avoid the 5-second startForeground deadline
+        // and the API 34 foregroundServiceType requirement.
+        context.startService(intent);
     }
 
     public static void stop(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(createStopIntent(context));
-        } else {
-            context.startService(createStopIntent(context));
-        }
+        context.startService(createStopIntent(context));
     }
 
     static Intent createStopIntent(Context context) {
@@ -108,14 +103,17 @@ public class GnirehtetService extends VpnService {
     }
 
     private void startVpn(VpnConfiguration config) {
-        notifier.start();
+        // establish() must be called first: it promotes this VpnService to foreground
+        // priority. Only after that do we show the notification. Calling startForeground()
+        // before establish() (or without a manifest foregroundServiceType on Android 14)
+        // throws a SecurityException and crashes the app.
         if (setupVpn(config)) {
+            notifier.start();
             GnirehtetSettings.setVpnRunning(this, true);
             GnirehtetSettings.setRelayConnected(this, false);
             GnirehtetSettings.setLastStatus(this, getString(R.string.status_vpn_started));
             startForwarding();
         } else {
-            notifier.stop();
             GnirehtetSettings.setVpnRunning(this, false);
             GnirehtetSettings.setRelayConnected(this, false);
         }
