@@ -66,11 +66,11 @@ impl Packetizer {
         }
     }
 
-    pub fn packetize_empty_payload(&mut self) -> Ipv4Packet {
+    pub fn packetize_empty_payload(&mut self) -> Ipv4Packet<'_> {
         self.build(0)
     }
 
-    pub fn packetize<R: DatagramReceiver>(&mut self, source: &mut R) -> io::Result<Ipv4Packet> {
+    pub fn packetize<R: DatagramReceiver>(&mut self, source: &mut R) -> io::Result<Ipv4Packet<'_>> {
         let r = source.recv(&mut self.buffer[self.payload_index..])?;
         let ipv4_packet = self.build(r as u16);
         Ok(ipv4_packet)
@@ -97,12 +97,12 @@ impl Packetizer {
         Ok(option)
     }
 
-    pub fn ipv4_header_mut(&mut self) -> Ipv4HeaderMut {
+    pub fn ipv4_header_mut(&mut self) -> Ipv4HeaderMut<'_> {
         let raw = &mut self.buffer[..self.transport_index];
         self.ipv4_header_data.bind_mut(raw)
     }
 
-    pub fn transport_header_mut(&mut self) -> TransportHeaderMut {
+    pub fn transport_header_mut(&mut self) -> TransportHeaderMut<'_> {
         let raw = &mut self.buffer[self.transport_index..self.payload_index];
         self.transport_header_data.bind_mut(raw)
     }
@@ -123,7 +123,7 @@ impl Packetizer {
         ipv4_packet
     }
 
-    pub fn inflate(&mut self, packet_length: u16) -> Ipv4Packet {
+    pub fn inflate(&mut self, packet_length: u16) -> Ipv4Packet<'_> {
         Ipv4Packet::new(
             &mut self.buffer[..packet_length as usize],
             self.ipv4_header_data.clone(),
