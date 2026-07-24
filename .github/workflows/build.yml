@@ -10,6 +10,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  ANDROID_HOME: /usr/local/lib/android/sdk
 
 jobs:
   build:
@@ -20,20 +21,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Modern sdkmanager (cmdline-tools 16+) requires JDK 17+.
-      # Install JDK 17 first just to run setup-android / sdkmanager.
+      # The preinstalled sdkmanager (cmdline-tools 9.0+) requires JDK 11+.
+      # Install JDK 17 first to run sdkmanager for license acceptance and
+      # package installation.
       - name: Set up JDK 17 (for sdkmanager)
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platforms;android-28
-            build-tools;28.0.3
+      - name: Accept Android SDK licenses and install packages
+        run: |
+          export SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          # Accept all SDK licenses non-interactively
+          yes | "$SDKMANAGER" --licenses > /dev/null
+          # Install the platform and build-tools required by the project
+          "$SDKMANAGER" "platforms;android-28" "build-tools;28.0.3"
 
       # AGP 3.5.0 + Gradle 5.4.1 only run on JDK 8.
       # Switch JAVA_HOME back to JDK 8 for the Gradle build.
