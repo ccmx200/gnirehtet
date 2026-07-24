@@ -255,10 +255,16 @@ public class GnirehtetService extends VpnService {
                     Toast.makeText(vpnService, R.string.notification_connected, Toast.LENGTH_SHORT).show();
                     break;
                 case RelayTunnelListener.MSG_RELAY_TUNNEL_DISCONNECTED:
-                    Log.d(TAG, "Relay tunnel disconnected");
+                    // The relay tunnel temporarily disconnected. Do NOT close the VPN here:
+                    // PersistentRelayTunnel will automatically try to reconnect (its send/receive
+                    // loops call provider.getCurrentTunnel() again after invalidateTunnel()).
+                    // Closing the VPN on every transient tunnel failure was causing "works at
+                    // first, then no internet after a while" because any brief relay hiccup
+                    // tore down the whole VPN session instead of letting it recover.
+                    Log.d(TAG, "Relay tunnel disconnected, waiting for auto-reconnect");
                     GnirehtetSettings.setRelayConnected(vpnService, false);
-                    Toast.makeText(vpnService, R.string.notification_disconnected, Toast.LENGTH_LONG).show();
-                    vpnService.closeAfterRelayDisconnected();
+                    GnirehtetSettings.setLastStatus(vpnService, vpnService.getString(R.string.status_relay_lost));
+                    vpnService.notifier.setFailure(true);
                     break;
                 default:
             }

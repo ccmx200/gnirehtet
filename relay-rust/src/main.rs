@@ -36,7 +36,10 @@ use std::thread;
 use std::time::Duration;
 
 const TAG: &str = "Main";
-const REQUIRED_APK_VERSION_CODE: &str = "9";
+// Minimum APK versionCode that is compatible with this relay. The client must be at least this
+// version; if an older one is installed, it will be reinstalled. Keep this in sync with
+// app/build.gradle `versionCode`. Current APK versionCode is 15 (v2.7.4).
+const REQUIRED_APK_VERSION_CODE: &str = "15";
 
 #[inline]
 fn get_adb_path() -> String {

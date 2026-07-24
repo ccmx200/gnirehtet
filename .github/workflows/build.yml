@@ -116,20 +116,19 @@ jobs:
             release/gnirehtet-linux-x86_64.zip
             release/gnirehtet-linux-aarch64.zip
           body: |
-            ## gnirehtet v2.7.3
+            ## gnirehtet v2.7.4
 
             ### Bug fixes
-            - **Fix crash on "Connect now" and VPN not showing (Android 14)**: The root cause was
-              `Notifier.start()` calling `Service.startForeground()`. On Android 14 (API 34) this
-              requires a `foregroundServiceType` declared in the manifest plus the matching
-              permission (e.g. `FOREGROUND_SERVICE_CONNECTED_DEVICE`), which a regular VpnService
-              does not have. Since `VpnService.establish()` already promotes the service to
-              foreground priority automatically, `startForeground()` is no longer called at all;
-              the notification is now posted via `NotificationManager.notify()`. The call order in
-              `GnirehtetService.startVpn()` was also fixed so `establish()` runs before the
-              notification is shown.
-            - Removed the unused `FOREGROUND_SERVICE_CONNECTED_DEVICE` permission and the
-              `foregroundServiceType` attribute (already done in 2.7.2, reiterated here because
-              the installed package on the device was still the old build).
+            - **Fix "works at first, then no internet after a while"**: `GnirehtetService` was
+              closing the entire VPN session whenever the relay tunnel reported a transient
+              disconnection (`MSG_RELAY_TUNNEL_DISCONNECTED` → `closeAfterRelayDisconnected()`).
+              But `RelayTunnelProvider.invalidateTunnel()` fires that notification on every
+              reconnect attempt, so any brief relay hiccup tore down the VPN instead of letting
+              `PersistentRelayTunnel` reconnect. The handler now only updates the status /
+              notification and leaves the VPN running, so the built-in auto-reconnect can recover.
+            - **Fix demand mode reinstalling the APK on every reconnect**:
+              `REQUIRED_APK_VERSION_CODE` was still `9` while the APK is now `versionCode 15`,
+              so `must_install_client()` always returned true and `adb install -r` interrupted
+              the running client. Bumped the constant to `15`.
 
             **Full changelog**: https://github.com/ccmx200/gnirehtet/commits/main
