@@ -1,0 +1,38 @@
+apply plugin: 'application'
+
+def gnirehtetMainClass = 'com.genymobile.gnirehtet.Main'
+
+mainClassName = gnirehtetMainClass
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+tasks.withType(JavaCompile) {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.compilerArgs += ['--release', '8']
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': gnirehtetMainClass
+        )
+    }
+    baseName 'gnirehtet'
+}
+
+task assembleDebug(dependsOn: 'jar')
+task assembleRelease(dependsOn: ['build', 'jar'])
+
+apply from: "$project.rootDir/config/java-checkstyle.gradle"
+
+test {
+    // to log using System.out.println(…) in tests
+    testLogging.showStandardStreams = true
+}

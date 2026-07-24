@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Gnirehtet</string>
+    <string name="relay_connected">电脑网络已连接</string>
+    <string name="relay_disconnected">中继已断开</string>
+    <string name="stop_vpn">停止 Gnirehtet</string>
+    <string name="mode_off">关闭</string>
+    <string name="mode_on">开启</string>
+    <string name="mode_auto">自动</string>
+    <string name="mode_auto_summary">当中继可用时自动接受电脑的连接。</string>
+    <string name="android_app_subtitle">为手机提供电脑网络</string>
+    <string name="status_current">当前状态</string>
+    <string name="status_mode">模式</string>
+    <string name="status_pc">电脑</string>
+    <string name="status_unknown_pc">未知电脑</string>
+    <string name="status_vpn">VPN</string>
+    <string name="status_relay">中继</string>
+    <string name="status_last_event">最近事件</string>
+    <string name="status_on">开</string>
+    <string name="status_off">关</string>
+    <string name="status_connected">已连接</string>
+    <string name="status_disconnected">已断开</string>
+    <string name="status_waiting_pc">等待电脑</string>
+    <string name="status_ready">就绪</string>
+    <string name="status_idle">空闲</string>
+    <string name="connect">连接</string>
+    <string name="connect_now">立即连接</string>
+    <string name="disconnect">断开连接</string>
+    <string name="status_vpn_started">VPN 已启动</string>
+    <string name="status_vpn_stopped">VPN 已停止</string>
+    <string name="status_relay_lost">中继已断开；VPN 已停止</string>
+    <string name="status_relay_ready">中继已连接</string>
+    <string name="status_start_blocked">连接被关闭模式阻止</string>
+    <string name="android_status_connected_detail">手机正在使用电脑的网络。</string>
+    <string name="android_status_waiting_detail">VPN 已激活但无中继。如果数据线已断开，VPN 将被停止。</string>
+    <string name="android_status_off_detail">连接已从手机端关闭。</string>
+    <string name="android_status_ready_detail">当电脑再次启动 Gnirehtet 时，应用将接受连接。</string>
+    <string name="notification_connected">Gnirehtet 已连接：电脑网络已启用。</string>
+    <string name="notification_connected_with_pc">Gnirehtet 已连接到 %1$s：电脑网络已启用。</string>
+    <string name="notification_disconnected">Gnirehtet 已断开：手机 VPN 已停止。</string>
+</resources>

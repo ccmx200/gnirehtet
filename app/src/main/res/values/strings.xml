@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Gnirehtet</string>
+    <string name="relay_connected">PC internet active</string>
+    <string name="relay_disconnected">Relay disconnected</string>
+    <string name="stop_vpn">Stop Gnirehtet</string>
+    <string name="mode_off">Off</string>
+    <string name="mode_on">On</string>
+    <string name="mode_auto">Auto</string>
+    <string name="mode_auto_summary">Auto accepts the PC connection when the relay is available.</string>
+    <string name="android_app_subtitle">PC internet for this phone</string>
+    <string name="status_current">Current status</string>
+    <string name="status_mode">Mode</string>
+    <string name="status_pc">PC</string>
+    <string name="status_unknown_pc">Unknown PC</string>
+    <string name="status_vpn">VPN</string>
+    <string name="status_relay">Relay</string>
+    <string name="status_last_event">Last event</string>
+    <string name="status_on">On</string>
+    <string name="status_off">Off</string>
+    <string name="status_connected">Connected</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="status_waiting_pc">Waiting for PC</string>
+    <string name="status_ready">Ready</string>
+    <string name="status_idle">Idle</string>
+    <string name="connect">Connect</string>
+    <string name="connect_now">Connect now</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="status_vpn_started">VPN started</string>
+    <string name="status_vpn_stopped">VPN stopped</string>
+    <string name="status_relay_lost">Relay disconnected; VPN stopped</string>
+    <string name="status_relay_ready">Relay connected</string>
+    <string name="status_start_blocked">Connection blocked by Off mode</string>
+    <string name="android_status_connected_detail">The phone is using the PC internet.</string>
+    <string name="android_status_waiting_detail">VPN active without relay. If the cable was disconnected, the VPN will be stopped.</string>
+    <string name="android_status_off_detail">The connection is turned off from the phone.</string>
+    <string name="android_status_ready_detail">The app will accept the connection when the PC starts Gnirehtet again.</string>
+    <string name="notification_connected">Gnirehtet connected: PC internet active.</string>
+    <string name="notification_connected_with_pc">Gnirehtet connected to %1$s: PC internet active.</string>
+    <string name="notification_disconnected">Gnirehtet disconnected: phone VPN stopped.</string>
+</resources>
