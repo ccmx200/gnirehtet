@@ -33,11 +33,14 @@ import java.util.concurrent.Future;
 
 public class Forwarder {
 
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(3);
+    // 2 threads: one for device→tunnel, one for tunnel→device. The wake-up workaround reuses
+    // the pool, so keep at least 3 to avoid blocking the forwarding threads.
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(4);
 
     private static final String TAG = Forwarder.class.getSimpleName();
 
-    private static final int BUFSIZE = 0x10000;
+    // larger buffer reduces syscalls per read/write on the VPN file descriptor
+    private static final int BUFSIZE = 0x20000;
 
     private static final byte[] DUMMY_ADDRESS = {42, 42, 42, 42};
     private static final int DUMMY_PORT = 4242;

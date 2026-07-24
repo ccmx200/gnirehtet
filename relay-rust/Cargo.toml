@@ -1,6 +1,6 @@
 [package]
 name = "gnirehtet"
-version = "2.6.0"
+version = "2.7.0"
 authors = ["Romain Vimont <rom@rom1v.com>"]
 edition = "2018"
 
@@ -18,4 +18,8 @@ rand = "0.7"      # for random TCP sequence number
 ctrlc = { version = "3.0", features = ["termination"] }     # for handling Ctrl+C
 
 [profile.release]
-lto = true     # link-time optimization
+opt-level = 3
+lto = "fat"           # full link-time optimization across all crates
+codegen-units = 1     # single codegen unit → better optimization at the cost of build time
+panic = "abort"       # smaller binary, no unwinding overhead
+strip = true          # strip debug symbols from binary

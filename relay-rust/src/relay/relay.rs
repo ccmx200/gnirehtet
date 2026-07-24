@@ -51,7 +51,7 @@ impl Relay {
         selector: &mut Selector,
         tunnel_server: &Rc<RefCell<TunnelServer>>,
     ) -> io::Result<()> {
-        let mut events = Events::with_capacity(1024);
+        let mut events = Events::with_capacity(4096);
         // no connection may expire before the UDP idle timeout delay
         let mut next_cleaning_deadline = Local::now().timestamp() + IDLE_TIMEOUT_SECONDS as i64;
         loop {

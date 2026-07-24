@@ -21,9 +21,12 @@ import android.net.LocalSocketAddress;
 import android.net.VpnService;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public final class RelayTunnel implements Tunnel {
 
@@ -32,6 +35,10 @@ public final class RelayTunnel implements Tunnel {
     private static final String LOCAL_ABSTRACT_NAME = "gnirehtet";
 
     private final LocalSocket localSocket = new LocalSocket();
+    // buffered streams reduce the number of JNI calls to the native socket layer;
+    // initialized lazily in connect() once the socket is connected
+    private OutputStream output;
+    private InputStream input;
 
     private RelayTunnel() {
         // exposed through open() static method
@@ -47,7 +54,10 @@ public final class RelayTunnel implements Tunnel {
 
     public void connect() throws IOException {
         localSocket.connect(new LocalSocketAddress(LOCAL_ABSTRACT_NAME));
-        readClientId(localSocket.getInputStream());
+        // wrap the socket streams with buffered streams for performance
+        this.output = new BufferedOutputStream(localSocket.getOutputStream(), 64 * 1024);
+        this.input = new BufferedInputStream(localSocket.getInputStream(), 64 * 1024);
+        readClientId(input);
     }
 
     /**
@@ -78,12 +88,14 @@ public final class RelayTunnel implements Tunnel {
         if (GnirehtetService.VERBOSE) {
             Log.v(TAG, "Sending packet: " + Binary.buildPacketString(packet, len));
         }
-        localSocket.getOutputStream().write(packet, 0, len);
+        // flush after each packet so the relay receives complete IP datagrams promptly
+        output.write(packet, 0, len);
+        output.flush();
     }
 
     @Override
     public int receive(byte[] packet) throws IOException {
-        int r = localSocket.getInputStream().read(packet);
+        int r = input.read(packet);
         if (GnirehtetService.VERBOSE) {
             Log.v(TAG, "Receiving packet: " + Binary.buildPacketString(packet, r));
         }

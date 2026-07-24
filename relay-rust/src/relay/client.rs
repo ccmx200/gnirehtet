@@ -123,7 +123,7 @@ impl Client {
             interests,
             token: Token(0), // default value, will be set afterwards
             client_to_network: Ipv4PacketBuffer::new(),
-            network_to_client: StreamBuffer::new(32 * MAX_PACKET_LENGTH),
+            network_to_client: StreamBuffer::new(64 * MAX_PACKET_LENGTH),
             router: Router::new(),
             closed: false,
             close_listener,

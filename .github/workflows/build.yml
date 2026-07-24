@@ -25,10 +25,9 @@ jobs:
       - name: Fix gradlew permissions
         run: chmod +x ./gradlew
 
-      # The preinstalled sdkmanager (cmdline-tools 9.0+) requires JDK 11+.
-      # Install JDK 17 first to run sdkmanager for license acceptance and
-      # package installation.
-      - name: Set up JDK 17 (for sdkmanager)
+      # AGP 7.4.2 + Gradle 7.6.4 require JDK 11+ (JDK 17 recommended).
+      # The preinstalled sdkmanager also requires JDK 11+.
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -39,19 +38,8 @@ jobs:
           export SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           # Accept all SDK licenses non-interactively
           yes | "$SDKMANAGER" --licenses > /dev/null
-          # Install the platform and build-tools required by the project
-          "$SDKMANAGER" "platforms;android-28" "build-tools;28.0.3"
-
-      # AGP 3.5.0 + Gradle 5.4.1 only run on JDK 8.
-      # Switch JAVA_HOME back to JDK 8 for the Gradle build.
-      - name: Set up JDK 8 (for Gradle)
-        uses: actions/setup-java@v4
-        with:
-          java-version: '8'
-          distribution: 'temurin'
-
-      - name: Verify Java version
-        run: java -version
+          # Install the platform and build-tools required by the project (SDK 34)
+          "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
@@ -128,38 +116,33 @@ jobs:
             release/gnirehtet-linux-x86_64.zip
             release/gnirehtet-linux-aarch64.zip
           body: |
-            ## gnirehtet v2.6.0
+            ## gnirehtet v2.7.0
 
-            ### New features
-            - **Demand mode**: new `gnirehtet demand` command that starts reverse tethering with
-              auto-recovery. It monitors the device connection via ADB and automatically restarts
-              the client (re-establishing the adb reverse tunnel and re-launching) when a device
-              disconnect is detected and it reconnects.
-            - **Chinese (Simplified) localization** for the Android client (`zh-rCN`).
-              Spanish strings removed; the default locale is now English.
+            ### Performance (focus of this release)
+            - **Rust relay release profile hardened**: `lto = "fat"`, `codegen-units = 1`,
+              `panic = "abort"`, `opt-level = 3`, `strip = true` — smaller binary with maximum
+              runtime optimization.
+            - **Larger relay buffers**: `client_to_network` 16× and `network_to_client` 64×
+              `MAX_PACKET_LENGTH`; selector slab and poll events capacity raised to 4096 — reduces
+              syscalls and event-loop iterations under load.
+            - **Android I/O throughput**: `Forwarder.BUFSIZE` doubled to 128 KiB; executor pool
+              bumped to 4 threads to avoid starving the wake-up workaround.
+            - **Buffered LocalSocket streams** in `RelayTunnel` (64 KiB BufferedInputStream /
+              BufferedOutputStream) — cuts JNI round-trips to the native socket layer.
+            - Faster client reconnect (2s) retained from 2.6.0.
 
-            ### Performance
-            - IPv4 throughput optimizations on the Rust relay:
-              - `TCP_NODELAY` set on both client tunnel and outbound TCP connections to reduce
-                latency for small packets.
-              - Larger buffers on the client and TCP connection paths
-                (`network_to_client` 32×, `client_to_network` 8× `MAX_PACKET_LENGTH`).
-            - Android client reconnect delay reduced from 5000ms to 2000ms for faster recovery.
+            ### Platform / SDK
+            - Android `compileSdkVersion` / `targetSdkVersion` raised to **34**.
+            - AGP upgraded to **7.4.2**, Gradle wrapper to **7.6.4**.
+            - Declared `foregroundServiceType="systemExempted"` for the VPN service and the
+              matching `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` permission for API 34 compliance.
+            - `testInstrumentationRunner` migrated to `androidx.test.runner.AndroidJUnitRunner`.
 
-            ### UI
-            - Removed the redundant system title bar in the launcher activity (the app draws its
-              own header, so the default action bar was duplicated).
-
-            ### Code quality
-            - Updated Rust source to the new lifetime elision syntax (`<'_>`) required by recent
-              Rust toolchains (`mismatched_lifetime_syntaxes` lint).
-            - Migrated Gradle build from `jcenter()` to `mavenCentral()`.
-
-            ### Builds
-            - GitHub Actions workflow now produces release artifacts for:
-              - Android APK (`gnirehtet.apk`)
-              - Windows x86_64 (`gnirehtet-windows-x86_64.zip`)
-              - Linux x86_64 (`gnirehtet-linux-x86_64.zip`)
-              - Linux aarch64 (`gnirehtet-linux-aarch64.zip`)
+            ### Carried over from 2.6.0
+            - Demand mode (auto-recovery on device disconnect).
+            - Chinese (Simplified) localization; Spanish removed.
+            - `TCP_NODELAY` on client tunnel and outbound TCP connections.
+            - Removed redundant system title bar in the launcher activity.
+            - Modern Rust lifetime syntax (`<'_>`); `jcenter()` → `mavenCentral()`.
 
             **Full changelog**: https://github.com/ccmx200/gnirehtet/commits/main

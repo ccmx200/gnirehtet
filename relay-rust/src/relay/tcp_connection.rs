@@ -171,7 +171,7 @@ impl TcpConnection {
             stream,
             interests,
             token: Token(0), // default value, will be set afterwards
-            client_to_network: StreamBuffer::new(8 * MAX_PACKET_LENGTH),
+            client_to_network: StreamBuffer::new(16 * MAX_PACKET_LENGTH),
             network_to_client: packetizer,
             packet_for_client_length: None,
             closed: false,

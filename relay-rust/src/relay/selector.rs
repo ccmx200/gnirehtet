@@ -47,7 +47,7 @@ impl Selector {
     pub fn create() -> io::Result<Self> {
         Ok(Self {
             poll: Poll::new()?,
-            handlers: Slab::with_capacity(1024),
+            handlers: Slab::with_capacity(4096),
             tokens_to_remove: Vec::new(),
         })
     }
