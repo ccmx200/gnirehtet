@@ -93,7 +93,7 @@ impl<'a> Ipv4Packet<'a> {
 
     #[inline]
     #[allow(dead_code)]
-    pub fn ipv4_header_mut(&mut self) -> Ipv4HeaderMut {
+    pub fn ipv4_header_mut(&mut self) -> Ipv4HeaderMut<'_> {
         let slice = &mut self.raw[..self.ipv4_header_data.header_length() as usize];
         self.ipv4_header_data.bind_mut(slice)
     }

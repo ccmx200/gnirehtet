@@ -85,7 +85,7 @@ impl Packetizer {
         &mut self,
         source: &mut R,
         max_chunk_size: Option<usize>,
-    ) -> io::Result<Option<Ipv4Packet>> {
+    ) -> io::Result<Option<Ipv4Packet<'_>>> {
         let mut adapter = ReadAdapter::new(source, max_chunk_size);
         let r = adapter.recv(&mut self.buffer[self.payload_index..])?;
         let option = if r > 0 {
@@ -107,7 +107,7 @@ impl Packetizer {
         self.transport_header_data.bind_mut(raw)
     }
 
-    fn build(&mut self, payload_length: u16) -> Ipv4Packet {
+    fn build(&mut self, payload_length: u16) -> Ipv4Packet<'_> {
         let total_length = self.payload_index as u16 + payload_length;
 
         self.ipv4_header_mut().set_total_length(total_length);

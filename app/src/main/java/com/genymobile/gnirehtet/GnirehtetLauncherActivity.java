@@ -15,6 +15,7 @@ import android.net.VpnService;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -61,8 +62,10 @@ public final class GnirehtetLauncherActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Hide the system title bar: the app already draws its own header
+        // with the app name, so the default action bar would be redundant.
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-        setTitle(R.string.app_name);
         setContentView(createContentView());
         refreshModeSelection();
         refreshStatus();
