@@ -115,16 +115,6 @@ jobs:
           (cd release && zip -j gnirehtet-linux-aarch64.zip gnirehtet-linux-aarch64)
           ls -la release/
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: gnirehtet-build
-          path: |
-            release/gnirehtet.apk
-            release/gnirehtet-windows-x86_64.zip
-            release/gnirehtet-linux-x86_64.zip
-            release/gnirehtet-linux-aarch64.zip
-
       - name: Create GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
@@ -134,4 +124,39 @@ jobs:
             release/gnirehtet-windows-x86_64.zip
             release/gnirehtet-linux-x86_64.zip
             release/gnirehtet-linux-aarch64.zip
-          generate_release_notes: true
+          body: |
+            ## gnirehtet v2.6.0
+
+            ### New features
+            - **Demand mode**: new `gnirehtet demand` command that starts reverse tethering with
+              auto-recovery. It monitors the device connection via ADB and automatically restarts
+              the client (re-establishing the adb reverse tunnel and re-launching) when a device
+              disconnect is detected and it reconnects.
+            - **Chinese (Simplified) localization** for the Android client (`zh-rCN`).
+              Spanish strings removed; the default locale is now English.
+
+            ### Performance
+            - IPv4 throughput optimizations on the Rust relay:
+              - `TCP_NODELAY` set on both client tunnel and outbound TCP connections to reduce
+                latency for small packets.
+              - Larger buffers on the client and TCP connection paths
+                (`network_to_client` 32×, `client_to_network` 8× `MAX_PACKET_LENGTH`).
+            - Android client reconnect delay reduced from 5000ms to 2000ms for faster recovery.
+
+            ### UI
+            - Removed the redundant system title bar in the launcher activity (the app draws its
+              own header, so the default action bar was duplicated).
+
+            ### Code quality
+            - Updated Rust source to the new lifetime elision syntax (`<'_>`) required by recent
+              Rust toolchains (`mismatched_lifetime_syntaxes` lint).
+            - Migrated Gradle build from `jcenter()` to `mavenCentral()`.
+
+            ### Builds
+            - GitHub Actions workflow now produces release artifacts for:
+              - Android APK (`gnirehtet.apk`)
+              - Windows x86_64 (`gnirehtet-windows-x86_64.zip`)
+              - Linux x86_64 (`gnirehtet-linux-x86_64.zip`)
+              - Linux aarch64 (`gnirehtet-linux-aarch64.zip`)
+
+            **Full changelog**: https://github.com/ccmx200/gnirehtet/commits/main
