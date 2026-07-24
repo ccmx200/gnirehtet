@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.os.Build;
 
 /**
@@ -70,7 +71,13 @@ public class Notifier {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel();
         }
-        context.startForeground(NOTIFICATION_ID, createNotification(false));
+        Notification notification = createNotification(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // API 34+ requires the foreground service type to be passed explicitly
+            context.startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+        } else {
+            context.startForeground(NOTIFICATION_ID, notification);
+        }
     }
 
     public void stop() {
@@ -103,7 +110,13 @@ public class Notifier {
 
     private Notification.Action createStopAction() {
         Intent stopIntent = GnirehtetService.createStopIntent(context);
-        PendingIntent stopPendingIntent = PendingIntent.getService(context, 0, stopIntent, PendingIntent.FLAG_ONE_SHOT);
+        // Android 12+ (API 31) requires every PendingIntent to specify a mutability flag,
+        // otherwise an IllegalArgumentException is thrown and the app crashes.
+        int flags = PendingIntent.FLAG_ONE_SHOT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+        PendingIntent stopPendingIntent = PendingIntent.getService(context, 0, stopIntent, flags);
         // the non-deprecated constructor is not available in API 21
         @SuppressWarnings("deprecation")
         Notification.Action.Builder actionBuilder = new Notification.Action.Builder(R.drawable.ic_close_24dp, context.getString(R.string.stop_vpn),

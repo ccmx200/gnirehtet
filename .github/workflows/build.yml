@@ -116,33 +116,16 @@ jobs:
             release/gnirehtet-linux-x86_64.zip
             release/gnirehtet-linux-aarch64.zip
           body: |
-            ## gnirehtet v2.7.0
+            ## gnirehtet v2.7.1
 
-            ### Performance (focus of this release)
-            - **Rust relay release profile hardened**: `lto = "fat"`, `codegen-units = 1`,
-              `panic = "abort"`, `opt-level = 3`, `strip = true` — smaller binary with maximum
-              runtime optimization.
-            - **Larger relay buffers**: `client_to_network` 16× and `network_to_client` 64×
-              `MAX_PACKET_LENGTH`; selector slab and poll events capacity raised to 4096 — reduces
-              syscalls and event-loop iterations under load.
-            - **Android I/O throughput**: `Forwarder.BUFSIZE` doubled to 128 KiB; executor pool
-              bumped to 4 threads to avoid starving the wake-up workaround.
-            - **Buffered LocalSocket streams** in `RelayTunnel` (64 KiB BufferedInputStream /
-              BufferedOutputStream) — cuts JNI round-trips to the native socket layer.
-            - Faster client reconnect (2s) retained from 2.6.0.
-
-            ### Platform / SDK
-            - Android `compileSdkVersion` / `targetSdkVersion` raised to **34**.
-            - AGP upgraded to **7.4.2**, Gradle wrapper to **7.6.4**.
-            - Declared `foregroundServiceType="systemExempted"` for the VPN service and the
-              matching `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` permission for API 34 compliance.
-            - `testInstrumentationRunner` migrated to `androidx.test.runner.AndroidJUnitRunner`.
-
-            ### Carried over from 2.6.0
-            - Demand mode (auto-recovery on device disconnect).
-            - Chinese (Simplified) localization; Spanish removed.
-            - `TCP_NODELAY` on client tunnel and outbound TCP connections.
-            - Removed redundant system title bar in the launcher activity.
-            - Modern Rust lifetime syntax (`<'_>`); `jcenter()` → `mavenCentral()`.
+            ### Bug fixes
+            - **Fix app crash on "Connect now"**: `PendingIntent` was created without a mutability
+              flag, which is mandatory on Android 12+ (API 31+) and threw
+              `IllegalArgumentException`. Added `FLAG_IMMUTABLE`.
+            - **Fix `startForeground()` failure on Android 14**: declared the correct
+              `foregroundServiceType="connectedDevice"` (instead of `systemExempted`, which
+              requires `SYSTEM_ALERT_WINDOW`) and the matching
+              `FOREGROUND_SERVICE_CONNECTED_DEVICE` permission. On API 34+, the service type is
+              now passed explicitly to `startForeground()`.
 
             **Full changelog**: https://github.com/ccmx200/gnirehtet/commits/main
